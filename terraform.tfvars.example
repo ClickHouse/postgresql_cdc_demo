@@ -1,0 +1,33 @@
+# AWS Configuration
+aws_region  = "ap-southeast-1"  # AWS region where resources will be deployed
+aws_profile = "sa"              # AWS profile to use for authentication
+
+# VPC and Network Configuration
+vpc_cidr              = "10.0.0.0/16"        # CIDR block for the VPC
+public_subnet_a_cidr  = "10.0.3.0/24"        # CIDR block for the first public subnet
+public_subnet_b_cidr  = "10.0.4.0/24"        # CIDR block for the second public subnet
+availability_zone_a   = "ap-southeast-1a"     # First availability zone
+availability_zone_b   = "ap-southeast-1b"     # Second availability zone
+
+# RDS Database Configuration
+db_instance_class     = "db.t3.micro"         # RDS instance type (smallest for demo)
+db_engine_version     = "17.2"                # PostgreSQL version
+db_allocated_storage  = 20                    # Storage in GB
+db_username          = "clickers"             # Master database username
+db_password          = "!YouShallNotPassWithThisPassword!"  # Master database password (change in production!)
+db_name              = "ch_cdc_demo"          # Name of the database to create
+
+# ClickPipes Configuration
+clickpipes_user_password = "ClickPipes@2025"  # Password for ClickPipes replication user
+
+# EC2 Configuration
+ec2_instance_type       = "t3.micro"          # EC2 instance type for data generator
+data_generation_interval = 5                  # Interval between data generation in seconds
+
+# Common Tags
+tags = {
+  Environment = "demo"                        # Environment name (e.g., dev, staging, prod)
+  Project     = "cdc"                        # Project name
+  Owner       = "your-team"                  # Team or owner name
+  ManagedBy   = "terraform"                  # Infrastructure management tool
+} 

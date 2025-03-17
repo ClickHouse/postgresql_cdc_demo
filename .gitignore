@@ -1,0 +1,48 @@
+# Terraform files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+.terraform
+crash.log
+crash.*.log
+
+# Terraform plan output files
+*.tfplan
+plan.out
+
+# Terraform override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Terraform variable files (may contain sensitive data)
+*.tfvars
+*.tfvars.json
+!terraform.tfvars.example
+!secret.tfvars.example
+
+# Terraform CLI configuration files
+.terraformrc
+terraform.rc
+
+# Log files
+*.log
+output.log
+
+# Local environment files
+.env
+.env.*
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Project specific directories
+scratch_pad/terraform.tfvars
