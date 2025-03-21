@@ -82,7 +82,7 @@ graph TD
 2. Review the planned changes:
 
    ```bash
-   terraform plan
+   terraform plan -var-file="terraform.tfvars"
    ```
 
    This will use the variables defined in terraform.tfvars
@@ -90,16 +90,16 @@ graph TD
 3. Apply the infrastructure:
 
    ```bash
-   terraform apply
+   terraform apply -var-file="terraform.tfvars"
    ```
 
-   When prompted, type 'yes' to confirm the changes
+   When prompted, type 'yes' to confirm the changes or you can add the -auto-approve flag to skip the prompt.
 
 4. To destroy the infrastructure:
    ```bash
-   terraform destroy
+   terraform destroy -var-file="terraform.tfvars"
    ```
-   When prompted, type 'yes' to confirm the destruction
+   When prompted, type 'yes' to confirm the destruction or you can add the -auto-approve flag to skip the prompt.
 
 ### Without terraform.tfvars
 
@@ -144,6 +144,29 @@ If you don't want to use terraform.tfvars, you can provide variables directly th
 - `outputs.tf`: Output definitions
 - `terraform.tfvars.example`: Example variables file
 
+## Demo Script
+
+1. Create a database for the demo
+
+```SQL
+ CREATE DATABASE IF NOT EXISTS cdc_demo;
+```
+
+2. We're going to let ClickPipes Create a Table for us, so we we will skip this step.
+3. Check if the source table exists and the data is being inserted
+
+```SQL
+-- Use PostgreSQL Table Function to get the data from the source table
+SELECT * FROM postgresql('<database_endpoint>:5432', '<database_name>', '<table_name>', '<username>', '<password>', '<schema_name>') LIMIT 10;
+```
+
+```SQL
+-- Use PostgreSQL Table Function to get the data from the source table
+SELECT COUNT() FROM postgresql('<database_endpoint>:5432', '<database_name>', '<table_name>', '<username>', '<password>', '<schema_name>');
+```
+
+4. Set up ClickPipes CDC to replicate the data to ClickHouse using the Cloud Console UI
+
 ## Contributing
 
 1. Fork the repository
@@ -154,5 +177,5 @@ If you don't want to use terraform.tfvars, you can provide variables directly th
 
 ## Roadmap
 
-1. [ ] Add ClickHouse instance creation
+1. [ ] Add ClickHouse instance creation - Will add this when the Terraform provider for ClickPipes CDC is available
 2. [ ] ClickPipes for PostgreSQL CDC - Waiting for Terraform provider for ClickPipes to support PostgreSQL CDC

@@ -158,17 +158,17 @@ resource "aws_security_group" "rds_sg" {
 
 # DB Subnet Group using the Public Subnet so RDS gets a public IP
 resource "aws_db_subnet_group" "rds_subnet_group" {
-  name       = "cdc-demo-rds-subnet-group"
+  name       = var.rds_subnet_group_name
   subnet_ids = [aws_subnet.public_subnet_a.id, aws_subnet.public_subnet_b.id]
 
   tags = merge(var.tags, {
-    Name = "cdc-demo-rds-subnet-group"
+    Name = var.rds_subnet_group_name
   })
 }
 
 # Parameter group for PostgreSQL to enable logical replication
 resource "aws_db_parameter_group" "postgres_params" {
-  name        = "cdc-demo-postgres-params"
+  name        = var.rds_parameter_group_name
   family      = "postgres17"  # Make sure this matches your PostgreSQL version
   description = "Parameter group for CDC demo with logical replication enabled"
 
@@ -185,12 +185,12 @@ resource "aws_db_parameter_group" "postgres_params" {
   }
 
   tags = merge(var.tags, {
-    Name = "cdc-demo-postgres-params"
+    Name = var.rds_parameter_group_name
   })
 }
 
 resource "aws_db_instance" "postgres" {
-  identifier             = "cdc-demo-postgres"
+  identifier             = var.rds_instance_identifier
   engine                 = "postgres"
   engine_version         = var.db_engine_version
   instance_class         = var.db_instance_class
@@ -207,7 +207,7 @@ resource "aws_db_instance" "postgres" {
   apply_immediately      = true
 
   tags = merge(var.tags, {
-    Name = "cdc-demo-postgres"
+    Name = var.rds_instance_identifier
   })
   
   depends_on = [aws_db_parameter_group.postgres_params]
@@ -252,7 +252,10 @@ resource "aws_instance" "data_generator" {
     #!/bin/bash
     # Update system and install dependencies
     yum update -y
-    yum install -y postgresql python3 python3-pip
+    amazon-linux-extras enable postgresql10
+    yum clean metadat
+    yum install -y postgresql
+    yum install -y python3 python3-pip
 
     # Install Python dependencies with error handling
     pip3 install psycopg2-binary || {
@@ -315,6 +318,7 @@ def setup_database():
                 logger.info("Setting up database schema and tables...")
                 cur.execute("CREATE SCHEMA IF NOT EXISTS source;")
                 cur.execute("CREATE TABLE IF NOT EXISTS source.live_data (id SERIAL PRIMARY KEY, value INTEGER, created_at TIMESTAMPTZ DEFAULT NOW());")
+                cur.execute("ALTER TABLE source.live_data OWNER TO ${var.clickpipes_username};")
                 conn.commit()
                 logger.info("Database setup completed successfully")
     except Exception as e:
@@ -374,15 +378,22 @@ ENDPYTHON
     # Create configuration script for ClickPipes user and replication
     cat > /home/ec2-user/configure_replication.sql << 'SQLEOF'
 -- Create a dedicated user for ClickPipes
-CREATE USER clickpipes_user PASSWORD '${var.clickpipes_user_password}';
+CREATE USER ${var.clickpipes_username} WITH PASSWORD '${var.clickpipes_user_password}';
 
--- Grant schema permissions for the source schema
-GRANT USAGE ON SCHEMA "source" TO clickpipes_user;
-GRANT SELECT ON ALL TABLES IN SCHEMA "source" TO clickpipes_user;
-ALTER DEFAULT PRIVILEGES IN SCHEMA "source" GRANT SELECT ON TABLES TO clickpipes_user;
+-- Grant schema permissions for the "source" schema
+CREATE SCHEMA IF NOT EXISTS "source";
+GRANT USAGE ON SCHEMA "source" TO ${var.clickpipes_username};
+GRANT SELECT ON ALL TABLES IN SCHEMA "source" TO ${var.clickpipes_username};
+GRANT CREATE ON DATABASE ch_cdc_demo TO ${var.clickpipes_username};
+
+-- Change the ownership of the table "live_data" in the "source" schema
+-- ALTER TABLE "source.live_data" OWNER TO ${var.clickpipes_username}; -- Moved this to the setup_database function as the table is created in the setup_database function
+
+-- Set default privileges on tables in the "source" schema
+ALTER DEFAULT PRIVILEGES IN SCHEMA "source" GRANT SELECT ON TABLES TO ${var.clickpipes_username};
 
 -- Grant replication privileges
-GRANT rds_replication TO clickpipes_user;
+GRANT rds_replication TO ${var.clickpipes_username};
 
 -- Create a publication for replication
 CREATE PUBLICATION clickpipes_publication FOR ALL TABLES;
@@ -396,7 +407,7 @@ echo "Waiting for database to be ready..."
 sleep 30
 
 echo "Setting up ClickPipes replication configuration..."
-PGPASSWORD="${var.db_password}" psql \
+PGPASSWORD='${var.db_password}' psql \
   -h ${aws_db_instance.postgres.address} \
   -U ${var.db_username} \
   -d ${var.db_name} \

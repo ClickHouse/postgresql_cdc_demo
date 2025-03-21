@@ -76,6 +76,12 @@ variable "db_name" {
   default     = "ch_cdc_demo"
 }
 
+variable "clickpipes_username" {
+  description = "Username for ClickPipes user"
+  type        = string
+  default     = "clickpipes_user"
+}
+
 variable "clickpipes_user_password" {
   description = "Password for ClickPipes user"
   type        = string
@@ -103,4 +109,22 @@ variable "tags" {
     Owner       = "SA-Team"                  # Team or owner name
     ManagedBy   = "terraform"                  # Infrastructure management tool
   }
+}
+
+variable "rds_subnet_group_name" {
+  description = "Name of the RDS subnet group"
+  type        = string
+  default     = "cdc-demo-rds-subnet-group"
+}
+
+variable "rds_parameter_group_name" {
+  description = "Name of the RDS parameter group"
+  type        = string
+  default     = "cdc-demo-postgres-params"
+}
+
+variable "rds_instance_identifier" {
+  description = "Identifier for the RDS instance"
+  type        = string
+  default     = "cdc-demo-postgres"
 } 

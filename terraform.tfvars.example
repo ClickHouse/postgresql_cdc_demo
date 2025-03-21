@@ -18,11 +18,17 @@ db_password          = "!YouShallNotPassWithThisPassword!"  # Master database pa
 db_name              = "ch_cdc_demo"          # Name of the database to create
 
 # ClickPipes Configuration
+clickpipes_username = "clickpipes_user" # Username for ClickPipes replication user
 clickpipes_user_password = "ClickPipes@2025"  # Password for ClickPipes replication user
 
 # EC2 Configuration
 ec2_instance_type       = "t3.micro"          # EC2 instance type for data generator
 data_generation_interval = 5                  # Interval between data generation in seconds
+
+# RDS Resource Names
+rds_subnet_group_name     = "cdc-demo-rds-subnet-group"    # Name of the RDS subnet group
+rds_parameter_group_name  = "cdc-demo-postgres-params"     # Name of the RDS parameter group
+rds_instance_identifier   = "cdc-demo-postgres"            # Identifier for the RDS instance
 
 # Common Tags
 tags = {
